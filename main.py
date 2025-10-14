@@ -11,7 +11,7 @@ app = FastAPI()
 # Allow your frontend to access this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[""],
+    allow_origins=["*"],
     #"https://weather-dashboard-frontend-tau.vercel.app",
     #"https://weather-dashboard-frontend-8qseputtt-declanmerrys-projects.vercel.app"
     allow_credentials=True,
