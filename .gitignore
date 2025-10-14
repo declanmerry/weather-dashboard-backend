@@ -1,0 +1,16 @@
+# Ignore Python virtual environments
+venv/
+__pycache__/
+
+# Ignore environment variables
+.env
+
+#Ignore accounts file
+Accounts.txt
+
+# VS Code settings
+.vscode/
+
+# Byte-compiled / log files
+*.pyc
+*.log
