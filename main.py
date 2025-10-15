@@ -1,25 +1,37 @@
 from fastapi import FastAPI
-import requests
-from pymongo import MongoClient
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
+from pymongo import MongoClient
+import requests
 
 load_dotenv()
+
 app = FastAPI()
 
-# Allow your frontend to access this API
+# List all frontend origins you use (include production + preview)
+origins = [
+    "https://weather-dashboard-frontend-bwj93bdrn-declanmerrys-projects.vercel.app",
+    "https://weather-dashboard-frontend-tau.vercel.app",
+    "http://localhost:5173",  # local dev
+]
+
+# Also allow any *.vercel.app (e.g. preview deploys)
+@app.middleware("http")
+async def add_dynamic_cors_header(request, call_next):
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    if origin and origin.endswith(".vercel.app"):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
+
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=[
-    #    "https://weather-dashboard-frontend-bwj93bdrn-declanmerrys-projects.vercel.app",
-    #    "https://weather-dashboard-frontend-tau.vercel.app"
-    #],
-    #allow_credentials=True,
-    allow_origins=["*"],    
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,           # only allow these
+    allow_credentials=True,          # safe for cookies/auth
+    allow_methods=["*"],             # allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],             # allow all request headers
 )
 
 # MongoDB setup
