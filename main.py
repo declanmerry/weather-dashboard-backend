@@ -36,11 +36,14 @@ app.add_middleware(
     allow_headers=["*"],             # allow all request headers
 )
 
-# MongoDB setup
+# --- MongoDB Setup ---
 MONGO_URI = os.getenv("MONGO_URI")
 client = MongoClient(MONGO_URI)
 db = client["weather_dashboard"]
 collection = db["weather_data"]
+
+# --- API Keys ---
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 @app.get("/")
 def root():
@@ -55,26 +58,33 @@ def get_weather(city: str):
     if cached:
         return cached["data"]
 
-    # Step 1: Get latitude/longitude using Open-Meteo geocoding
-    geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_normalized}&count=1"
-    geo_response = requests.get(geo_url)
-    geo_data = geo_response.json()
+    # 2️⃣ Fetch from Open-Meteo
+    open_meteo_url = "https://api.open-meteo.com/v1/forecast"
+    open_meteo_params = {"latitude": 51.5, "longitude": -0.12, "current_weather": True}
+    meteo_response = requests.get(open_meteo_url, params=open_meteo_params)
+    meteo_data = meteo_response.json()
 
-    if "results" not in geo_data or not geo_data["results"]:
-        return {"error": f"City '{city}' not found."}
+    # 3️⃣ Fetch from OpenWeatherMap
+    openweather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid={OPENWEATHER_API_KEY}"
+    openweather_response = requests.get(openweather_url)
+    openweather_data = openweather_response.json()
 
-    lat = geo_data["results"][0]["latitude"]
-    lon = geo_data["results"][0]["longitude"]
+    # 4️⃣ Combine results
+    combined = {
+        "city": city.title(),
+        "open_meteo": meteo_data.get("current_weather", {}),
+        "open_weather": {
+            "temp": openweather_data.get("main", {}).get("temp"),
+            "feels_like": openweather_data.get("main", {}).get("feels_like"),
+            "weather": openweather_data.get("weather", [{}])[0].get("description"),
+            "wind_speed": openweather_data.get("wind", {}).get("speed"),
+        },
+    }
 
-    # Step 2: Fetch current weather for that location
-    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    weather_response = requests.get(weather_url)
-    data = weather_response.json()
+    # 5️⃣ Cache in MongoDB
+    collection.insert_one({"city": city.lower(), "data": combined})
 
-    # Step 3: Cache the result in MongoDB
-    collection.insert_one({"city": city_normalized, "data": data})
-
-    return data
+    return combined
 
 if __name__ == "__main__":
     import uvicorn
