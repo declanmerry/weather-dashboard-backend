@@ -29,7 +29,9 @@ async def add_dynamic_cors_header(request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,           # only allow these
+    #allow_origins=origins,           # only allow these
+    allow_origin_regex=r"https:\/\/.*\.vercel\.app",  # allow ALL vercel.app subdomains
+    allow_origins=["http://localhost:5173"],  # for local development
     allow_credentials=True,          # safe for cookies/auth
     allow_methods=["*"],             # allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],             # allow all request headers
