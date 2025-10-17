@@ -12,10 +12,7 @@ app = FastAPI()
 # List all frontend origins you use (include production + preview)
 origins = [
     "https://weather-dashboard-frontend-bwj93bdrn-declanmerrys-projects.vercel.app",
-    "https://weather-dashboard-frontend-m6iudr1ey-declanmerrys-projects.vercel.app",
-    "https://weather-dashboard-frontend-kfnvsp0z4-declanmerrys-projects.vercel.app",
-    "https://weather-dashboard-frontend-q4t6669i1-declanmerrys-projects.vercel.app",
-    "https://weather-dashboard-frontend-10f36hb2e-declanmerrys-projects.vercel.app",
+    "https://weather-dashboard-frontend-dfwuyjbgk-declanmerrys-projects.vercel.app",
     "https://weather-dashboard-frontend-tau.vercel.app",
     "http://localhost:5173",  # local dev
 ]
